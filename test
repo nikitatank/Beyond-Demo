@@ -1,0 +1,126 @@
+const express = require('express')
+const app = express();
+const path = require('path')
+const bodyParser = require("body-parser");
+const cors = require('cors')
+const port = 3000
+app.use(cors())
+
+app.listen(port, () => {
+    console.log('Server listening on ' + port)
+})
+app.use(bodyParser.urlencoded({extended: false})) //can be true
+app.use(bodyParser.json())
+
+
+const MongoClient = require('mongodb').MongoClient;
+//const url = "mongodb://localhost:27017/userdata";
+const url ="mongodb+srv://wgubeyond:Samp2020!@cluster0.xdjyg.mongodb.net/tech-demo?retryWrites=true&w=majority"
+
+
+
+app.post('/email', async function (req, res) {
+    var email = req.body
+    var em = email['email']
+    console.log(email)
+    async function findOne() {
+        const client = await MongoClient.connect(url, { useNewUrlParser: true,useUnifiedTopology:true})
+            .catch(err => { console.log(err); });
+        if (!client) {
+            return;
+        }
+        try {
+            const db = client.db("tech-demo");
+            let collection = db.collection('notes');
+            let res = await collection.find({email:em}).toArray();
+            console.log('result of the query is ')
+            console.log(res);
+            if(Array.isArray(res) && res.length === 0){
+               let ins =  await collection.insertOne(email)
+                console.log(`insterd one data ${ins}`)
+            }
+            let n = collection.find({note:{}},{email:em}).toArray()
+            console.log(`not of the ${em} is ${n}`)
+            //let note = n['note']
+
+
+        } catch (err) {
+            console.log(err);
+
+        } finally {
+            client.close();
+        }
+    }
+
+    findOne();
+    return res.send(email['note'])
+    //return res.end('done')
+    //return res.render("view","locals") //view-> name if hte file we ar erendersing  , locals -> data passsed in the file
+})
+
+
+
+----
+
+
+// function onSubmitEmailClick(){
+//         var email = {
+//                 email : document.getElementById('email').value
+//         }
+//         console.log(`data that we typed in html file is ${email}`)
+//         xhr.open("POST", 'http://localhost:3000/email', true);
+//         xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+//         xhr.onreadystatechange = function (){
+//                 if(xhr.readyState == 4 &&  xhr.status == 200){
+//                         console.log(xhr.responseText)
+//                 }
+//                 //console.log(xhr.response)  // res.send respone.
+//                // d = document.createElement("label, text, button ")
+//                 //d.innerHTML()
+//                 //mighht create a table and put notes thete
+//         }
+//        xhr.send(JSON.stringify(email))
+//         //console.log(`data sending via http requst is ${da}`)
+//         //document.getElementById("note").innerHTML = x;
+//         // /email ->notes.html
+//         //send post reqest to server that will pass data to scripts.js -> email
+// //create button  and text
+// }
+
+----
+        var note = document.createElement("INPUT");
+        note.setAttribute("type", "text");
+        note.setAttribute('id',"note_text")
+        document.body.appendChild(note);
+
+
+        var btn_add = document.createElement("BUTTON");
+        btn_add.setAttribute('id',"add_note")
+        var add = document.createTextNode("ADD");
+        btn_add.appendChild(add);
+        document.body.appendChild(btn_add);
+
+
+        var tbl = document.createElement("table");
+        var tblBody = document.createElement("tbody");
+
+
+        const row = document.createElement("tr");
+
+        const nt = document.createElement("td");
+        const note1 = document.createTextNode("note_text");
+        nt.appendChild(note1);
+        row.appendChild(nt);
+
+        const ntb = document.createElement("td");
+        const btn = document.createElement("BUTTON");
+        const btn_nm = document.createTextNode("X");
+        //on click button of clear it should remove that note
+        btn.appendChild(btn_nm);
+        ntb.appendChild(btn)
+        row.appendChild(ntb)
+
+
+        tblBody.appendChild(row);
+        tbl.appendChild(tblBody);
+        document.body.appendChild(tbl)
